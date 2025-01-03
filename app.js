@@ -4,7 +4,7 @@ import cors from 'cors';
 import fileUpload from 'express-fileupload'; // Corrección en el nombre del paquete
 import history from 'connect-history-api-fallback';
 import path from 'path';
-import { Client, LocalAuth } from "whatsapp-web.js";
+//import { Client, LocalAuth } from "whatsapp-web.js";
 import 'dotenv/config'; // Usa esta forma si trabajas con import
 
 

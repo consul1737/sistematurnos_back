@@ -1,9 +1,12 @@
 import { json } from 'express';
 import pool from '../database/keys';
 import moment from 'moment';
-import { Client, LocalAuth } from "whatsapp-web.js";
-const { formatearFecha } = require('../utils/dateformatter');
-import fs from "fs";
+import 'dotenv/config';
+//import { Client, LocalAuth } from "whatsapp-web.js";
+//const { formatearFecha } = require('../utils/dateformatter');
+//import fs from "fs";
+const { client }= require ('../utils/whatsapp-bot');
+
 
 const fromatearFecha = (fecha) => {
   const fechaObj = new Date(fecha); // Convierte la cadena de fecha en un objeto Date
@@ -14,28 +17,6 @@ const fromatearFecha = (fecha) => {
   return `${year}-${month}-${day}`; // Devuelve la fecha en el formato YYYY-MM-DD
 };
 
-const client = new Client({
-  authStrategy: new LocalAuth(), // Esto guardará la sesión automáticamente
-});
-
-client.on("qr", (qr) => {
-  const qrcode = require("qrcode-terminal");
-  qrcode.generate(qr, { small: true });
-});
-
-client.on("ready", () => {
-  console.log("Cliente de WhatsApp está listo.");
-});
-
-client.on("auth_failure", (msg) => {
-  console.error("Error de autenticación:", msg);
-});
-
-client.on("disconnected", () => {
-  console.log("Cliente desconectado.");
-});
-
-client.initialize();
 
 const administrador = {};
 
@@ -235,6 +216,10 @@ administrador.getCalendarTurnos = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener turnos', error: error.message });
   }
 };
+
+// Importa el cliente de WhatsApp W
+
+// Función para enviar las notificaciones
 administrador.enviarNotificaciones = async (req, res) => {
   const { turnos, mensajeBase } = req.body;
 
