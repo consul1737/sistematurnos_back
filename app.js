@@ -4,7 +4,6 @@ import cors from 'cors';
 import fileUpload from 'express-fileupload'; // Corrección en el nombre del paquete
 import history from 'connect-history-api-fallback';
 import path from 'path';
-//import { Client, LocalAuth } from "whatsapp-web.js";
 import 'dotenv/config'; // Usa esta forma si trabajas con import
 
 
@@ -24,7 +23,7 @@ app.use(fileUpload({ useTempFiles: true })); // Corrección de "useTempfiles" a 
 app.use ('/', require('./routes/auth.routes'));
 app.use ('/', require('./routes/administrador.routes'));
 app.use ('/', require('./routes/pacientes.routes'));
-
+app.use ('/', require('./routes/whatsapp.route'));
 // middelword for veu
 app.use(history());
 app.use(express.static(path.join(__dirname, 'public'))); 

@@ -4,8 +4,6 @@ node_modules/
 # Variables de entorno
 .env
 
-package-lock.json
-package.json
 # Cachés y configuraciones temporales
 .wwebjs_auth/
 .wwebjs_cache/
