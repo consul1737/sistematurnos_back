@@ -29,7 +29,7 @@ app.use(history());
 app.use(express.static(path.join(__dirname, 'public'))); 
 
 // Settings
-app.set('port', process.env.PORT || 3001);
+app.set('port', process.env.PORT || 3002);
 
 app.listen(app.get('port'), () => {
     console.log('Server on port ' + app.get('port'));
