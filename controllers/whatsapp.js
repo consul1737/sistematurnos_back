@@ -1,19 +1,25 @@
-import pkg from 'whatsapp-web.js';
-const { Client, LocalAuth } = pkg;
+import { Client, LocalAuth } from 'whatsapp-web.js';
 import dotenv from 'dotenv/config';
 import qrcode from 'qrcode';
-import { pool } from '../database/keys'; // Configura correctamente el pool para PostgreSQL.
+import  pool  from '../database/keys'; // Configura correctamente el pool para PostgreSQL.
 
 const clientInstance = new Client({
   authStrategy: new LocalAuth(), // Usa LocalAuth para autenticación sin escaneo QR
 });
 
-let qrCodeData = null;
+let qrCodeData = "";
 
 // Escuchar eventos del cliente
 clientInstance.on("qr", (qr) => {
-  console.log("QR RECEIVED", qr);
-  qrCodeData = qr; // Guardar el último QR recibidonpm r
+  console.log(qr);
+  qrcode.toDataURL(qr, (err, url) => {
+    if (err) {
+      console.error('Error al generar el QR:', err);
+      return;
+    }
+    qrCodeData = url;
+    console.log('QR generado:', qrCodeData);
+  })
 });
 
 clientInstance.on("ready", () => {
@@ -29,38 +35,32 @@ clientInstance.on("disconnected", () => {
 });
 
 // Esperar a que el cliente esté completamente listo antes de hacer cualquier operación
-const ensureClientReady = async () => {
-  return new Promise((resolve, reject) => {
-    if (clientInstance.info && clientInstance.info.wid) {
-      resolve(true);
-    } else {
-      clientInstance.once("ready", () => resolve(true));
-      clientInstance.once("auth_failure", (message) => reject(message));
-    }
-  });
-};
+// const ensureClientReady = async () => {
+//   return new Promise((resolve, reject) => {
+//     if (clientInstance.info && clientInstance.info.wid) {
+//       resolve(true);
+//     } else {
+//       clientInstance.once("ready", () => resolve(true));
+//       clientInstance.once("auth_failure", (message) => reject(message));
+//     }
+//   });
+// };
 
 // Inicializar cliente
 clientInstance.initialize();
 
 // Controladores
 const conectGenerateQR = (req, res) => {
-  if (qrCodeData) {
-    qrcode.toDataURL(qrCodeData, (err, url) => {
-      if (err) {
-        console.error("Error al generar QR:", err);
-        res.status(500).send("Error al generar QR");
-      } else {
-        res.json({ qrCode: url }); // Enviar QR como base64
-      }
-    });
-  } else {
-    res.status(404).send("QR no disponible aún. Por favor, intente nuevamente.");
-  }
+    if(qrCodeData){
+        res.status(200).json({ qrCode: qrCodeData });
+    }else{
+        res.status(500).json({ message: "Error al generar el QR" });
+    }
 };
 
 const conectEnviarNotificaciones = async (req, res) => {
   const { turnos, mensajeBase } = req.body;
+  console.log("Turnos recibidos:", turnos);
 
   if (!turnos || turnos.length === 0) {
     console.warn("No se proporcionaron turnos en la solicitud.");
@@ -71,14 +71,14 @@ const conectEnviarNotificaciones = async (req, res) => {
 
   try {
     // Esperar a que el cliente esté listo antes de enviar los mensajes
-    await ensureClientReady();
+    // await ensureClientReady();
 
     for (const turno of turnos) {
       const { idTurno, numero } = turno;
 
       // Verificar formato del número
       if (!numero || !/^\d+$/.test(numero)) {
-        console.warn(`Número inválido para el turno ${idTurno}: ${numero}`);
+        console.warn(`Número inválido para el turno ${idTurno}: ${numero}`); 
         continue;
       }
 
@@ -104,6 +104,8 @@ const conectEnviarNotificaciones = async (req, res) => {
 
       const turnoData = result.rows[0];
       console.log(`Datos del turno: ${JSON.stringify(turnoData)}`);
+
+      
 
       // Personalizar el mensaje
       const mensaje = mensajeBase

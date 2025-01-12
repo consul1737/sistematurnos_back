@@ -58,7 +58,7 @@ AdminPacientes.ObtenerPacientes = async (req, res) => {
 AdminPacientes.DeletePacientes = async (req, res) => {
   const id = req.params.id_paciente;
   try {
-    await pool.query('DELETE FROM pacientes WHERE id_paiente = $1', [id]);
+    await pool.query('DELETE FROM pacientes WHERE id_paciente = $1', [id]);
     res.status(200).json({
       message: 'El paciente se eliminó correctamente',
     });

@@ -1,10 +1,13 @@
 import { Pool } from "pg";
-const pool = new Pool({
-    host: 'localhost',
-    port: '5432',
-    user: 'postgres',
-    password :'123',
-    database: 'lumina'
-})
+import dotenv from "dotenv";
+dotenv.config();
 
-module.exports = pool; 
+const pool = new Pool({
+    host: process.env.HOST,
+    port: process.env.PORTDB,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE,
+});
+
+export default pool;

@@ -17,6 +17,6 @@ router.get('/pacientes', administrador.getPacientes);
 router.get('/Calendarturnos', administrador.getCalendarTurnos);
 
 // Notificaciones
-router.post('/enviar-notificaciones', administrador.enviarNotificaciones);
+// router.post('/enviar-notificaciones', administrador.enviarNotificaciones);
 
 module.exports = router;

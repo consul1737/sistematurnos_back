@@ -1,7 +1,7 @@
 import { json } from 'express';
 import pool from '../database/keys';
 import moment from 'moment';
-import { Client, LocalAuth } from "whatsapp-web.js";
+// import { Client, LocalAuth } from "whatsapp-web.js";
 const { formatearFecha } = require('../utils/dateformatter');
 import fs from "fs";
 
@@ -14,28 +14,28 @@ const fromatearFecha = (fecha) => {
   return `${year}-${month}-${day}`; // Devuelve la fecha en el formato YYYY-MM-DD
 };
 
-const client = new Client({
-  authStrategy: new LocalAuth(), // Esto guardará la sesión automáticamente
-});
+// const client = new Client({
+//   authStrategy: new LocalAuth(), // Esto guardará la sesión automáticamente
+// });
 
-client.on("qr", (qr) => {
-  const qrcode = require("qrcode-terminal");
-  qrcode.generate(qr, { small: true });
-});
+// client.on("qr", (qr) => {
+//   const qrcode = require("qrcode-terminal");
+//   qrcode.generate(qr, { small: true });
+// });
 
-client.on("ready", () => {
-  console.log("Cliente de WhatsApp está listo.");
-});
+// client.on("ready", () => {
+//   console.log("Cliente de WhatsApp está listo.");
+// });
 
-client.on("auth_failure", (msg) => {
-  console.error("Error de autenticación:", msg);
-});
+// client.on("auth_failure", (msg) => {
+//   console.error("Error de autenticación:", msg);
+// });
 
-client.on("disconnected", () => {
-  console.log("Cliente desconectado.");
-});
+// client.on("disconnected", () => {
+//   console.log("Cliente desconectado.");
+// });
 
-client.initialize();
+// client.initialize();
 
 const administrador = {};
 
@@ -235,69 +235,69 @@ administrador.getCalendarTurnos = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener turnos', error: error.message });
   }
 };
-administrador.enviarNotificaciones = async (req, res) => {
-  const { turnos, mensajeBase } = req.body;
+// administrador.enviarNotificaciones = async (req, res) => {
+//   const { turnos, mensajeBase } = req.body;
 
-  if (!turnos || turnos.length === 0) {
-    return res.status(400).json({
-      message: 'Debe proporcionar al menos un turno para enviar mensajes.',
-    });
-  }
+//   if (!turnos || turnos.length === 0) {
+//     return res.status(400).json({
+//       message: 'Debe proporcionar al menos un turno para enviar mensajes.',
+//     });
+//   }
 
-  try {
-    for (const turno of turnos) {
-      const { idTurno, numero } = turno;
+//   try {
+//     for (const turno of turnos) {
+//       const { idTurno, numero } = turno;
 
-      // Verificar formato del número
-      if (!numero || !/^\d+$/.test(numero)) {
-        console.warn(`Número inválido para el turno ${idTurno}: ${numero}`);
-        continue;
-      }
+//       // Verificar formato del número
+//       if (!numero || !/^\d+$/.test(numero)) {
+//         console.warn(`Número inválido para el turno ${idTurno}: ${numero}`);
+//         continue;
+//       }
 
-      // Construir el número completo con el código de país desde la variable de entorno
-      const fullPhoneNumber = `${process.env.COUNTRY_CODE}${numero}`;
+//       // Construir el número completo con el código de país desde la variable de entorno
+//       const fullPhoneNumber = `${process.env.COUNTRY_CODE}${numero}`;
 
-      // Consultar detalles del turno desde la base de datos
-      const result = await pool.query(
-        `SELECT t.id_turno, p.nombre AS paciente, c.nombre AS consultorio, 
-                tr.nombre AS tratamiento, t.fecha, t.hora 
-         FROM turnos t 
-         JOIN pacientes p ON t.id_paciente = p.id_paciente 
-         JOIN consultorios c ON t.id_consultorio = c.id_consultorio 
-         JOIN tratamientos tr ON t.id_tratamiento = tr.id_tratamiento 
-         WHERE t.id_turno = $1`,
-        [idTurno]
-      );
+//       // Consultar detalles del turno desde la base de datos
+//       const result = await pool.query(
+//         `SELECT t.id_turno, p.nombre AS paciente, c.nombre AS consultorio, 
+//                 tr.nombre AS tratamiento, t.fecha, t.hora 
+//          FROM turnos t 
+//          JOIN pacientes p ON t.id_paciente = p.id_paciente 
+//          JOIN consultorios c ON t.id_consultorio = c.id_consultorio 
+//          JOIN tratamientos tr ON t.id_tratamiento = tr.id_tratamiento 
+//          WHERE t.id_turno = $1`,
+//         [idTurno]
+//       );
 
-      if (result.rows.length === 0) {
-        console.warn(`Turno no encontrado: ${idTurno}`);
-        continue;
-      }
+//       if (result.rows.length === 0) {
+//         console.warn(`Turno no encontrado: ${idTurno}`);
+//         continue;
+//       }
 
-      const turnoData = result.rows[0];
+//       const turnoData = result.rows[0];
 
-      // Personalizar el mensaje
-      const mensaje = mensajeBase
-        .replace('{PACIENTE}', turnoData.paciente)
-        .replace('{CONSULTORIO}', turnoData.consultorio)
-        .replace('{TRATAMIENTO}', turnoData.tratamiento)
-        .replace('{FECHA}', turnoData.fecha)
-        .replace('{HORA}', turnoData.hora);
+//       // Personalizar el mensaje
+//       const mensaje = mensajeBase
+//         .replace('{PACIENTE}', turnoData.paciente)
+//         .replace('{CONSULTORIO}', turnoData.consultorio)
+//         .replace('{TRATAMIENTO}', turnoData.tratamiento)
+//         .replace('{FECHA}', turnoData.fecha)
+//         .replace('{HORA}', turnoData.hora);
 
-      // Enviar mensaje por WhatsApp
-      const chatId = `${fullPhoneNumber}@c.us`;
-      await client.sendMessage(chatId, mensaje);
-    }
+//       // Enviar mensaje por WhatsApp
+//       const chatId = `${fullPhoneNumber}@c.us`;
+//       await client.sendMessage(chatId, mensaje);
+//     }
 
-    res.status(200).json({ message: 'Mensajes enviados con éxito.' });
-  } catch (error) {
-    console.error('Error al enviar mensajes:', error);
-    res.status(500).json({
-      message: 'Error al enviar los mensajes.',
-      error: error.message,
-    });
-  }
-};
+//     res.status(200).json({ message: 'Mensajes enviados con éxito.' });
+//   } catch (error) {
+//     console.error('Error al enviar mensajes:', error);
+//     res.status(500).json({
+//       message: 'Error al enviar los mensajes.',
+//       error: error.message,
+//     });
+//   }
+// };
 
 
 
