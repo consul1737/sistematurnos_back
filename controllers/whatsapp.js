@@ -1,13 +1,80 @@
 import { Client, LocalAuth } from 'whatsapp-web.js';
-import dotenv from 'dotenv/config';
+import { formatearFecha } from '../utils/dateformatter';
 import qrcode from 'qrcode';
 import  pool  from '../database/keys'; // Configura correctamente el pool para PostgreSQL.
 
 const clientInstance = new Client({
-  authStrategy: new LocalAuth(), // Usa LocalAuth para autenticación sin escaneo QR
+  authTimeoutMs: 20000,
+  takeoverOnConflict: true,
+  authStrategy: new LocalAuth({
+    clientId: "session",
+  }),
+  restartOnAuthFail: true,
+  puppeteer: {
+    ignoreDefaultArgs: ["--enable-automation", "--disable-dev-shm-usage"],
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-gpu-driver-bug-workarounds",
+      "--disable-setuid-sandbox",
+      "--unhandled-rejections=strict",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--disable-gpu",
+      "--log-level=3",
+      "--no-default-browser-check",
+      "--disable-site-isolation-trials",
+      "--no-experiments",
+      "--ignore-gpu-blacklist",
+      "--ignore-certificate-errors",
+      "--ignore-certificate-errors-spki-list",
+      "--disable-extensions",
+      "--disable-default-apps",
+      "--enable-features=NetworkService",
+      "--disable-webgl",
+      "--disable-threaded-animation",
+      "--disable-threaded-scrolling",
+      "--disable-in-process-stack-traces",
+      "--disable-histogram-customizer",
+      "--disable-gl-extensions",
+      "--disable-composited-antialiasing",
+      "--disable-canvas-aa",
+      "--disable-3d-apis",
+      "--disable-accelerated-jpeg-decoding",
+      "--disable-accelerated-mjpeg-decode",
+      "--disable-app-list-dismiss-on-blur",
+      "--disable-accelerated-video-decode",
+    ],
+  },
+});
+
+process.on("unhandledRejection", async (reason) => {
+  if (
+    typeof reason === "string" &&
+    (reason.includes("Protocol Error:") || reason.includes("Target closed."))
+  ) {
+    await clientInstance.destroy();
+    await fs.rmdir("./wwebjs_auth", { recursive: true });
+  }
+});
+process.on("uncaughtException", async (error) => {
+  if (
+    error.message.includes("Protocol Error:") ||
+    error.message.includes("Target closed.")
+  ) {
+    await clientInstance.destroy();
+    await fs.rmdir("./wwebjs_auth", { recursive: true });
+  }
 });
 
 let qrCodeData = "";
+
+clientInstance.on("ready", () => {
+  console.log("¡Cliente de WhatsApp listo!");
+});
+
 
 // Escuchar eventos del cliente
 clientInstance.on("qr", (qr) => {
@@ -22,29 +89,65 @@ clientInstance.on("qr", (qr) => {
   })
 });
 
-clientInstance.on("ready", () => {
-  console.log("¡Cliente de WhatsApp listo!");
+clientInstance.on("disconnected", async () => {
+  console.log("Cliente desconectado.");
+  try {
+    await clientInstance.destroy();
+    console.log("Cliente destruido.");
+  } catch (err) {
+    if (err.code === "EBUSY") {
+      console.warn(
+        `Erro EBUSY ao destruir cliente para o usuário. Recurso ocupado ou bloqueado.`
+      );
+      // Aguarda um curto período e tenta novamente
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      try {
+        console.log(`Tentando destruir novamente o cliente para o usuário `);
+        await clientInstance.destroy();
+      } catch (retryErr) {
+        console.warn(
+          `Tentativa final de destruir cliente para o usuário  falhou:`,
+          retryErr
+        );
+      }
+    } else {
+      console.warn(`Erro inesperado ao destruir cliente para o usuário `, err);
+    }
+  }
+  if (reason === "NAVIGATION" || reason === "LOGOUT") {
+    const sessionDir = path.join("./wwebjs_auth", `session-session`);
+
+    // Verificar se a pasta existe
+    if (await fs.stat(sessionDir).catch(() => false)) {
+      try {
+        await fs.rm(sessionDir, { recursive: true, force: true });
+        console.log(
+          `Pasta da sessão excluída com sucesso para o usuário `
+        );
+      } catch (err) {
+        console.log(
+          `Erro ao excluir a pasta da sessão para o usuário  ${err.message}`
+        );
+      }
+    }
+  }
 });
+
+clientInstance.on("error", (error) => {
+  console.error(`Error in client`, error);
+});
+
 
 clientInstance.on("authenticated", () => {
   console.log("¡Cliente autenticado correctamente!");
 });
 
-clientInstance.on("disconnected", () => {
-  console.log("¡Cliente desconectado!");
+clientInstance.on("auth_failure", (message) => {
+  console.error("Falló la autenticación:", message);
+  console.log("Intentando reiniciar el cliente...");
+  clientInstance.destroy().then(() => clientInstance.initialize());
 });
 
-// Esperar a que el cliente esté completamente listo antes de hacer cualquier operación
-// const ensureClientReady = async () => {
-//   return new Promise((resolve, reject) => {
-//     if (clientInstance.info && clientInstance.info.wid) {
-//       resolve(true);
-//     } else {
-//       clientInstance.once("ready", () => resolve(true));
-//       clientInstance.once("auth_failure", (message) => reject(message));
-//     }
-//   });
-// };
 
 // Inicializar cliente
 clientInstance.initialize();
@@ -105,14 +208,16 @@ const conectEnviarNotificaciones = async (req, res) => {
       const turnoData = result.rows[0];
       console.log(`Datos del turno: ${JSON.stringify(turnoData)}`);
 
-      
+      //** se crea el mensaje personalizado** //
+      // Formatear la fecha
+      const formattedDate = formatearFecha(turnoData.fecha);
 
       // Personalizar el mensaje
       const mensaje = mensajeBase
         .replace("{PACIENTE}", turnoData.paciente)
         .replace("{CONSULTORIO}", turnoData.consultorio)
         .replace("{TRATAMIENTO}", turnoData.tratamiento)
-        .replace("{FECHA}", turnoData.fecha)
+        .replace("{FECHA}", formattedDate)
         .replace("{HORA}", turnoData.hora);
 
       console.log(`Mensaje personalizado: ${mensaje}`);
