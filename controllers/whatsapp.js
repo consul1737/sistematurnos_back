@@ -71,12 +71,14 @@ process.on("uncaughtException", async (error) => {
 
 // Variables estado para saber si esta pidiendo el qr
 let qrRequested = false;
+let isReady = false;
 
 // 
 let qrCodeData = "";
 
 clientInstance.on("ready", () => {
   console.log("¡Cliente de WhatsApp listo!");
+  isReady = true;
 });
 
 
@@ -181,6 +183,14 @@ const conectGenerateQR = (req, res) => {
   // }
 };
 
+const checkReadQr = (req, res) => {
+
+  res.json({ isRead: isReady })
+  if (isReady) return;
+
+}
+
+
 const conectEnviarNotificaciones = async (req, res) => {
   const { turnos, mensajeBase } = req.body;
   console.log("Turnos recibidos:", turnos);
@@ -264,4 +274,4 @@ const conectEnviarNotificaciones = async (req, res) => {
 };
 
 // Exportar los controladores
-export { conectGenerateQR, conectEnviarNotificaciones };
+export { conectGenerateQR, conectEnviarNotificaciones, checkReadQr };

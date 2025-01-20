@@ -1,41 +1,5 @@
-import { json } from 'express';
 import pool from '../database/keys';
-import moment from 'moment';
-// import { Client, LocalAuth } from "whatsapp-web.js";
-const { formatearFecha } = require('../utils/dateformatter');
-import fs from "fs";
-
-const fromatearFecha = (fecha) => {
-  const fechaObj = new Date(fecha); // Convierte la cadena de fecha en un objeto Date
-  const year = fechaObj.getFullYear(); // Obtiene el año
-  const month = String(fechaObj.getMonth() + 1).padStart(2, '0'); // Obtiene el mes (y le suma 1 porque los meses en JS comienzan desde 0)
-  const day = String(fechaObj.getDate()).padStart(2, '0'); // Obtiene el día
-
-  return `${year}-${month}-${day}`; // Devuelve la fecha en el formato YYYY-MM-DD
-};
-
-// const client = new Client({
-//   authStrategy: new LocalAuth(), // Esto guardará la sesión automáticamente
-// });
-
-// client.on("qr", (qr) => {
-//   const qrcode = require("qrcode-terminal");
-//   qrcode.generate(qr, { small: true });
-// });
-
-// client.on("ready", () => {
-//   console.log("Cliente de WhatsApp está listo.");
-// });
-
-// client.on("auth_failure", (msg) => {
-//   console.error("Error de autenticación:", msg);
-// });
-
-// client.on("disconnected", () => {
-//   console.log("Cliente desconectado.");
-// });
-
-// client.initialize();
+const { formatearFechaDB } = require('../utils/dateformatter');
 
 const administrador = {};
 
@@ -46,7 +10,7 @@ administrador.crearTurno = async (req, res) => {
     // Intentar insertar un turno, respetando la restricción UNIQUE
     await pool.query(
       'INSERT INTO turnos (id_paciente, fecha, hora, id_tratamiento, id_consultorio) VALUES ($1, $2, $3, $4, $5)',
-      [id_paciente, fecha, hora, id_tratamiento, id_consultorio ]
+      [id_paciente, fecha, hora, id_tratamiento, id_consultorio]
     );
 
     res.status(200).json({
@@ -176,8 +140,6 @@ administrador.getConsultorios = async (req, res) => {
   }
 };
 
-
-
 administrador.getTratamientos = async (req, res) => {
   try {
     const result = await pool.query('SELECT id_tratamiento, nombre FROM tratamientos');
@@ -226,7 +188,7 @@ administrador.getCalendarTurnos = async (req, res) => {
     // Formatear las fechas antes de enviar la respuesta
     const turnosFormateados = turnos.rows.map(turno => ({
       ...turno,
-      fecha: fromatearFecha(turno.fecha)  // Aplicar la función de formato
+      fecha: formatearFechaDB(turno.fecha)  // Aplicar la función de formato
     }));
 
     // Enviar los turnos con las fechas formateadas

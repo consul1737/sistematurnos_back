@@ -1,16 +1,10 @@
 import pool from '../database/keys';
+import { formatearFechaDB } from '../utils/dateformatter';
 
 const AdminPacientes = {};
 
 // Función para formatear fechas
-const formatearFecha = (fecha) => {
-  const fechaObj = new Date(fecha); // Convierte la cadena de fecha en un objeto Date
-  const year = fechaObj.getFullYear(); // Obtiene el año
-  const month = String(fechaObj.getMonth() + 1).padStart(2, '0'); // Obtiene el mes (y le suma 1 porque los meses en JS comienzan desde 0)
-  const day = String(fechaObj.getDate()).padStart(2, '0'); // Obtiene el día
 
-  return `${year}-${month}-${day}`; // Devuelve la fecha en el formato YYYY-MM-DD
-};
 
 // Crear un paciente
 AdminPacientes.CrearPaciente = async (req, res) => {
@@ -44,7 +38,7 @@ AdminPacientes.ObtenerPacientes = async (req, res) => {
     // Formatear las fechas de los pacientes antes de enviarlos
     const pacientesFormateados = result.rows.map(paciente => ({
       ...paciente,
-      fecha_nacimiento: formatearFecha(paciente.fecha_nacimiento),
+      fecha_nacimiento: formatearFechaDB(paciente.fecha_nacimiento),
     }));
 
     // Enviar los datos formateados al frontend
