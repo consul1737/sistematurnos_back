@@ -20,16 +20,16 @@ app.use(fileUpload({ useTempFiles: true })); // Corrección de "useTempfiles" a 
 // Corrección de "_dirname" a "__dirname"
 
 // Routes
-app.use ('/', require('./routes/auth.routes'));
-app.use ('/', require('./routes/administrador.routes'));
-app.use ('/', require('./routes/pacientes.routes'));
-app.use ('/', require('./routes/whatsapp.route'));
+app.use('/', require('./routes/auth.routes'));
+app.use('/', require('./routes/administrador.routes'));
+app.use('/', require('./routes/pacientes.routes'));
+app.use('/', require('./routes/whatsapp.route'));
 // middelword for veu
 app.use(history());
-app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Settings
-app.set('port', process.env.PORT || 3002);
+app.set('port', process.env.PORT || 3003);
 
 app.listen(app.get('port'), () => {
     console.log('Server on port ' + app.get('port'));
