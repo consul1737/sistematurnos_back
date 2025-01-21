@@ -98,49 +98,56 @@ clientInstance.on("qr", (qr) => {
   }
 });
 
+
+
 clientInstance.on("disconnected", async () => {
   console.log("Cliente desconectado.");
   clientReady = false;
   try {
     try {
-      await clientInstance.destroy();
-      console.log("Cliente destruido.");
-    } catch (err) {
-      if (err.code === "EBUSY") {
-        console.warn(
-          `Erro EBUSY ao destruir cliente para o usuário. Recurso ocupado ou bloqueado.`
-        );
-        // Aguarda um curto período e tenta novamente
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        try {
-          console.log(`Tentando destruir novamente o cliente para o usuário `);
-          await clientInstance.destroy();
-        } catch (retryErr) {
+      try {
+        await clientInstance.destroy();
+        console.log("Cliente destruido.");
+      } catch (err) {
+        if (err.code === "EBUSY") {
           console.warn(
-            `Tentativa final de destruir cliente para o usuário  falhou:`,
-            retryErr
+            `Erro EBUSY ao destruir cliente para o usuário. Recurso ocupado ou bloqueado.`
           );
+          // Aguarda um curto período e tenta novamente
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          try {
+            console.log(`Tentando destruir novamente o cliente para o usuário `);
+            await clientInstance.destroy();
+          } catch (retryErr) {
+            console.warn(
+              `Tentativa final de destruir cliente para o usuário  falhou:`,
+              retryErr
+            );
+          }
+        } else {
+          console.warn(`Erro inesperado ao destruir cliente para o usuário `, err);
         }
-      } else {
-        console.warn(`Erro inesperado ao destruir cliente para o usuário `, err);
+      }
+      if (reason === "NAVIGATION" || reason === "LOGOUT") {
+        const sessionDir = path.join("./wwebjs_auth", `session-session`);
+
+        // Verificar se a pasta existe
+        if (await fs.stat(sessionDir).catch(() => false)) {
+          try {
+            await fs.rm(sessionDir, { recursive: true, force: true });
+            console.log(
+              `Pasta da sessão excluída com sucesso para o usuário `
+            );
+          } catch (err) {
+            console.log(
+              `Erro ao excluir a pasta da sessão para o usuário  ${err.message}`
+            );
+          }
+        }
       }
     }
-    if (reason === "NAVIGATION" || reason === "LOGOUT") {
-      const sessionDir = path.join("./wwebjs_auth", `session-session`);
-
-      // Verificar se a pasta existe
-      if (await fs.stat(sessionDir).catch(() => false)) {
-        try {
-          await fs.rm(sessionDir, { recursive: true, force: true });
-          console.log(
-            `Pasta da sessão excluída com sucesso para o usuário `
-          );
-        } catch (err) {
-          console.log(
-            `Erro ao excluir a pasta da sessão para o usuário  ${err.message}`
-          );
-        }
-      }
+    finally {
+      await clientInstance.initialize();
     }
   }
   finally {
