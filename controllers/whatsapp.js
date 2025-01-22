@@ -75,10 +75,6 @@ process.on("uncaughtException", async (error) => {
 let qrRequested = false;
 
 // 
-// Variables estado para saber si esta pidiendo el qr
-let qrRequested = false;
-
-// 
 let qrCodeData = "";
 
 clientInstance.on("ready", () => {
