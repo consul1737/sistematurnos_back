@@ -1,0 +1,5 @@
+2025/01/21-20:32:16.405 1794b9 Creating DB /home/soporte/sistematurnos/sistematurnos_back/whatsapp-js-session/session-session/Default/Local Storage/leveldb since it was missing.
+2025/01/21-20:32:16.453 1794b9 Reusing MANIFEST /home/soporte/sistematurnos/sistematurnos_back/whatsapp-js-session/session-session/Default/Local Storage/leveldb/MANIFEST-000001
+2025/01/22-09:47:25.563 19ad0d Level-0 table #5: started
+2025/01/22-09:47:25.566 19ad0d Level-0 table #5: 18251 bytes OK
+2025/01/22-09:47:25.567 19ad0d Delete type=0 #3

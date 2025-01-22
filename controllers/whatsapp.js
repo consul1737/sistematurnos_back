@@ -2,12 +2,14 @@ import { Client, LocalAuth } from 'whatsapp-web.js';
 import { formatearFecha } from '../utils/dateformatter';
 import qrcode from 'qrcode';
 import pool from '../database/keys'; // Configura correctamente el pool para PostgreSQL.
+import pool from '../database/keys'; // Configura correctamente el pool para PostgreSQL.
 
 const clientInstance = new Client({
   authTimeoutMs: 20000,
   takeoverOnConflict: true,
   authStrategy: new LocalAuth({
     clientId: "session",
+    dataPath: 'whatsapp-js-session'
   }),
   restartOnAuthFail: true,
   puppeteer: {
@@ -73,6 +75,10 @@ process.on("uncaughtException", async (error) => {
 let qrRequested = false;
 
 // 
+// Variables estado para saber si esta pidiendo el qr
+let qrRequested = false;
+
+// 
 let qrCodeData = "";
 
 clientInstance.on("ready", () => {
@@ -94,51 +100,69 @@ clientInstance.on("qr", (qr) => {
       console.log('QR generado:', qrCodeData);
     })
   }
+
+  // Verificar si se ha solicitado el QR
+  if (qrRequested) {
+    qrcode.toDataURL(qr, (err, url) => {
+      if (err) {
+        console.error('Error al generar el QR:', err);
+        return;
+      }
+      qrCodeData = url;
+      console.log('QR generado:', qrCodeData);
+    })
+  }
 });
 
 clientInstance.on("disconnected", async () => {
   console.log("Cliente desconectado.");
   clientReady = false;
   try {
+    // clientReady = false;
     try {
-      await clientInstance.destroy();
-      console.log("Cliente destruido.");
-    } catch (err) {
-      if (err.code === "EBUSY") {
-        console.warn(
-          `Erro EBUSY ao destruir cliente para o usuário. Recurso ocupado ou bloqueado.`
-        );
-        // Aguarda um curto período e tenta novamente
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        try {
-          console.log(`Tentando destruir novamente o cliente para o usuário `);
-          await clientInstance.destroy();
-        } catch (retryErr) {
+      try {
+        await clientInstance.destroy();
+        console.log("Cliente destruido.");
+      } catch (err) {
+        if (err.code === "EBUSY") {
           console.warn(
-            `Tentativa final de destruir cliente para o usuário  falhou:`,
-            retryErr
+            `Erro EBUSY ao destruir cliente para o usuário. Recurso ocupado ou bloqueado.`
           );
+          // Aguarda um curto período e tenta novamente
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          try {
+            console.log(`Tentando destruir novamente o cliente para o usuário `);
+            await clientInstance.destroy();
+          } catch (retryErr) {
+            console.warn(
+              `Tentativa final de destruir cliente para o usuário  falhou:`,
+              retryErr
+            );
+          }
+        } else {
+          console.warn(`Erro inesperado ao destruir cliente para o usuário `, err);
         }
-      } else {
-        console.warn(`Erro inesperado ao destruir cliente para o usuário `, err);
+      }
+      if (reason === "NAVIGATION" || reason === "LOGOUT") {
+        const sessionDir = path.join("./wwebjs_auth", `session-session`);
+        a
+        // Verificar se a pasta existe
+        if (await fs.stat(sessionDir).catch(() => false)) {
+          try {
+            await fs.rm(sessionDir, { recursive: true, force: true });
+            console.log(
+              `Pasta da sessão excluída com sucesso para o usuário `
+            );
+          } catch (err) {
+            console.log(
+              `Erro ao excluir a pasta da sessão para o usuário  ${err.message}`
+            );
+          }
+        }
       }
     }
-    if (reason === "NAVIGATION" || reason === "LOGOUT") {
-      const sessionDir = path.join("./wwebjs_auth", `session-session`);
-
-      // Verificar se a pasta existe
-      if (await fs.stat(sessionDir).catch(() => false)) {
-        try {
-          await fs.rm(sessionDir, { recursive: true, force: true });
-          console.log(
-            `Pasta da sessão excluída com sucesso para o usuário `
-          );
-        } catch (err) {
-          console.log(
-            `Erro ao excluir a pasta da sessão para o usuário  ${err.message}`
-          );
-        }
-      }
+    finally {
+      await clientInstance.initialize();
     }
   }
   finally {
@@ -179,6 +203,18 @@ const conectGenerateQR = (req, res) => {
   // } else {
   //   res.status(500).json({ message: "Error al generar el QR" });
   // }
+  if (!qrCodeData) {
+    qrRequested = true; // Aca marca que se ha solicitado el QR
+    res.json({ message: 'QR solicitado, espere...' });
+  } else {
+    res.json({ qrCode: qrCodeData }); // Si ya existe un QR, se envia
+  }
+
+  // if (qrCodeData) {
+  //   res.status(200).json({ qrCode: qrCodeData });
+  // } else {
+  //   res.status(500).json({ message: "Error al generar el QR" });
+  // }
 };
 
 const conectEnviarNotificaciones = async (req, res) => {
@@ -201,6 +237,7 @@ const conectEnviarNotificaciones = async (req, res) => {
 
       // Verificar formato del número
       if (!numero || !/^\d+$/.test(numero)) {
+        console.warn(`Número inválido para el turno ${idTurno}: ${numero}`);
         console.warn(`Número inválido para el turno ${idTurno}: ${numero}`);
         continue;
       }
@@ -241,6 +278,7 @@ const conectEnviarNotificaciones = async (req, res) => {
         .replace("{HORA}", turnoData.hora);
 
       console.log(`Mensaje personalizado: ${mensaje}`);
+
 
       console.log("Estado del cliente antes de enviar mensaje:", clientInstance.info);
       console.log("¿Está el cliente completamente listo?", clientInstance.isReady);
