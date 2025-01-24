@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon app.js",
-    "babel": "nodemon app.js --exec babel-node",
+    "dev": "nodemon src/app.js",
+    "babel": "nodemon src/app.js --exec babel-node",
     "build": "babel . -d dist --ignore node_modules",
     "start": "node dist/app.js"
   },

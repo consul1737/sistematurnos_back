@@ -96,13 +96,13 @@ clientInstance.on("qr", (qr) => {
       console.log('QR generado:', qrCodeData);
     })
   }
-});
 
+});
 
 
 clientInstance.on("disconnected", async () => {
   console.log("Cliente desconectado.");
-  clientReady = false;
+  isReady = false;
   try {
     try {
       try {
@@ -176,26 +176,18 @@ clientInstance.initialize();
 
 // Controladores
 const conectGenerateQR = (req, res) => {
-  if (!qrCodeData) {
-    qrRequested = true; // Aca marca que se ha solicitado el QR
-    res.json({ message: 'QR solicitado, espere...' });
-  } else {
-    res.json({ qrCode: qrCodeData }); // Si ya existe un QR, se envia
+  if (!isReady) {
+    if (!qrCodeData) {
+      qrRequested = true; // Aca marca que se ha solicitado el QR
+      res.json({ message: 'QR solicitado, espere...' });
+    } else {
+      res.json({ qrCode: qrCodeData }); // Si ya existe un QR, se envia
+    }
   }
-
-  // if (qrCodeData) {
-  //   res.status(200).json({ qrCode: qrCodeData });
-  // } else {
-  //   res.status(500).json({ message: "Error al generar el QR" });
-  // }
+  else {
+    res.json({ isReady: true });
+  }
 };
-
-const checkReadQr = (req, res) => {
-
-  res.json({ isRead: isReady })
-  if (isReady) return;
-
-}
 
 
 const conectEnviarNotificaciones = async (req, res) => {
@@ -281,4 +273,4 @@ const conectEnviarNotificaciones = async (req, res) => {
 };
 
 // Exportar los controladores
-export { conectGenerateQR, conectEnviarNotificaciones, checkReadQr };
+export { conectGenerateQR, conectEnviarNotificaciones };
