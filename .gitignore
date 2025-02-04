@@ -7,6 +7,7 @@ node_modules/
 # Cachés y configuraciones temporales
 .wwebjs_auth/
 .wwebjs_cache/
+whatsapp-js-session/
 
 # Logs
 *.log

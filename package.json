@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon app.js",
-    "babel": "nodemon app.js --exec babel-node",
+    "babel": "nodemon src/app.js --exec babel-node",
     "build": "babel . -d dist --ignore node_modules",
     "start": "node dist/app.js",
     "pm2:start": "pm2 start dist/app.js --name 'mi-backend'",
@@ -42,6 +42,7 @@
     "@babel/node": "^7.26.0",
     "@babel/plugin-transform-runtime": "^7.25.9",
     "@babel/preset-env": "^7.26.0",
+    "babel-plugin-module-resolver": "^5.0.2",
     "nodemon": "^3.1.9"
   }
 }
