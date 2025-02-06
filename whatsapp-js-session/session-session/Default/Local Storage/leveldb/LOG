@@ -1,3 +1,3 @@
-2025/02/03-23:06:32.960 4424 Reusing MANIFEST C:\proyectos\TurnosAPP\sistematurnos_back\whatsapp-js-session\session-session\Default\Local Storage\leveldb/MANIFEST-000001
-2025/02/03-23:06:32.961 4424 Recovering log #11
-2025/02/03-23:06:32.962 4424 Reusing old log C:\proyectos\TurnosAPP\sistematurnos_back\whatsapp-js-session\session-session\Default\Local Storage\leveldb/000011.log 
+2025/02/06-10:59:56.693 b3d8 Reusing MANIFEST /home/agustin/Proyectos/sistematurnos_back/whatsapp-js-session/session-session/Default/Local Storage/leveldb/MANIFEST-000001
+2025/02/06-10:59:56.730 b3d8 Recovering log #3
+2025/02/06-10:59:56.746 b3d8 Reusing old log /home/agustin/Proyectos/sistematurnos_back/whatsapp-js-session/session-session/Default/Local Storage/leveldb/000003.log 
