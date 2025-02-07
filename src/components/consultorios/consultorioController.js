@@ -113,33 +113,37 @@ export const createConsultorio = async (req, res) => {
 };
 
 export const updateConsultorio = async (req, res) => {
-  const { id } = req.params; // ID del consultorio a actualizar
+  const { id_consultorio } = req.params; // ID del consultorio a actualizar
   const { nombre, color, tratamiento } = req.body;
+
+  console.log("Datos recibidos:", id_consultorio, nombre, color, tratamiento);
 
   try {
     // Actualiza los datos básicos del consultorio
     const result = await pool.query(
       `UPDATE consultorios SET nombre = $1, color = $2 WHERE id_consultorio = $3 RETURNING *`,
-      [nombre, color, id]
+      [nombre, color, id_consultorio]
     );
-
+    console.log(result.rows);
     if (result.rowCount === 0) {
       return res.status(404).json({ message: "Consultorio no encontrado" });
     }
+
+    console.log("Tratamiento:", tratamiento);
 
     // Si se proporciona un tratamiento, actualiza la relación
     if (tratamiento !== undefined) {
       // Elimina las relaciones existentes para este consultorio
       await pool.query(
         `DELETE FROM consultorio_tratamiento WHERE id_consultorio = $1`,
-        [id]
+        [id_consultorio]
       );
 
       // Inserta la nueva relación si el tratamiento no es null
       if (tratamiento) {
         await pool.query(
           `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)`,
-          [id, tratamiento]
+          [id_consultorio, tratamiento]
         );
       }
     }
@@ -155,19 +159,31 @@ export const updateConsultorio = async (req, res) => {
 };
 
 export const deleteConsultorio = async (req, res) => {
-  const { id } = req.params; // ID del consultorio a eliminar
+  const { id_consultorio } = req.params; // ID del consultorio a eliminar
+
+  const result = await pool.query(
+    `SELECT estado FROM turnos WHERE id_consultorio = $1`,
+    [id_consultorio]
+  );
+
+  // Verificar si el consultorio tiene turnos
+  if (result.estado === "pendiente") {
+    return res
+      .status(400)
+      .json({ message: "El consultorio no puede ser eliminado ya que tiene turnos asignados" });
+  }
 
   try {
     // Primero, elimina las relaciones en la tabla consultorio_tratamiento
     await pool.query(
       `DELETE FROM consultorio_tratamiento WHERE id_consultorio = $1`,
-      [id]
+      [id_consultorio]
     );
 
     // Luego, elimina el consultorio en la tabla consultorios
     const result = await pool.query(
       `DELETE FROM consultorios WHERE id_consultorio = $1 RETURNING *`,
-      [id]
+      [id_consultorio]
     );
 
     if (result.rowCount === 0) {

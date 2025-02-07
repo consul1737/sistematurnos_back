@@ -6,13 +6,7 @@ import history from "connect-history-api-fallback";
 import path from "path";
 import "dotenv/config"; // Usa esta forma si trabajas con import
 
-// Importa las rutas usando los alias
-import consultorioRoute from "@consultorios/consultorios.routes";
-import authRoute from "@auth/auth.routes";
-import turnosRoute from "@turnos/turnos.routes";
-import pacientesRoute from "@pacientes/pacientes.routes";
-import whatsappRoute from "@whatsapp/whatsapp.routes";
-import tratamientosRoute from "@tratamientos/tratamientos.routes";
+
 
 const app = express();
 
@@ -23,6 +17,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({ useTempFiles: true }));
 
+
+// Importa las rutas usando los alias
+import consultorioRoute from "@consultorios/consultorios.routes";
+import authRoute from "@auth/auth.routes";
+import turnosRoute from "@turnos/turnos.routes";
+import pacientesRoute from "@pacientes/pacientes.routes";
+import whatsappRoute from "@whatsapp/whatsapp.routes";
+import tratamientosRoute from "@tratamientos/tratamientos.routes";
 // Rutas
 app.use("/", authRoute);
 app.use("/", whatsappRoute);
