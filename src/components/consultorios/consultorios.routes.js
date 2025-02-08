@@ -5,15 +5,17 @@ import {
   createConsultorio,
   updateConsultorio,
   deleteConsultorio,
-  getTratamientos,
+  getConsultorioTratamiento,
   getConsultoriosConTratamientos,
 } from "@consultorios/consultorioController";
+
 const router = Router();
 
 router.get("/", getConsultorios);
 router.post("/", createConsultorio);
 router.get("/tratamientos", getConsultoriosConTratamientos);
-router.get("/tratamientos/:id", getTratamientos);
+router.get("/consultorio_tratamientos/", getConsultorioTratamiento);
+// router.get("/tratamientos/:id", getTratamientos);
 
 router
   .route("/:id_consultorio")

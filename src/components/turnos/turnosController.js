@@ -1,9 +1,6 @@
-import { json } from 'express';
 import pool from '../database/keys';
-import moment from 'moment';
 // import { Client, LocalAuth } from "whatsapp-web.js";
 const { formatearFecha } = require('../../utils/dateformatter');
-import fs from "fs";
 
 const fromatearFecha = (fecha) => {
   const fechaObj = new Date(fecha); // Convierte la cadena de fecha en un objeto Date
@@ -14,18 +11,16 @@ const fromatearFecha = (fecha) => {
   return `${year}-${month}-${day}`; // Devuelve la fecha en el formato YYYY-MM-DD
 };
 
-
-
 const administrador = {};
 
 // Crear un turno
 administrador.crearTurno = async (req, res) => {
-  const { id_paciente, fecha, hora, id_tratamiento, id_consultorio } = req.body;
+  const { id_paciente, fecha, hora, estado, id_consultorio } = req.body;
   try {
     // Intentar insertar un turno, respetando la restricción UNIQUE
     await pool.query(
-      'INSERT INTO turnos (id_paciente, fecha, hora, id_tratamiento, id_consultorio) VALUES ($1, $2, $3, $4, $5)',
-      [id_paciente, fecha, hora, id_tratamiento, id_consultorio]
+      'INSERT INTO turnos (id_paciente, fecha, hora, estado, id_consultorio) VALUES ($1, $2, $3, $4, $5)',
+      [id_paciente, fecha, hora, estado, id_consultorio]
     );
 
     res.status(200).json({
@@ -124,7 +119,7 @@ administrador.deleteTurno = async (req, res) => {
 };
 
 // Obtener todos los turnos filtrados por id_consultorio
-administrador.getTurnos = async (req, res) => {
+administrador.getTurnosById = async (req, res) => {
   const { id_consultorio } = req.body;
 
   try {
@@ -138,6 +133,20 @@ administrador.getTurnos = async (req, res) => {
     } else {
       res.status(404).json({ message: 'No se encontraron turnos para este consultorio.' });
     }
+  } catch (error) {
+    console.error('Error al obtener los turnos:', error);
+    res.status(500).json({
+      message: 'Error interno del servidor',
+      error,
+    });
+  }
+};
+
+// Obtener todos los turnos
+administrador.getTurnos = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM turnos ORDER BY fecha, hora');
+    res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error al obtener los turnos:', error);
     res.status(500).json({
@@ -161,36 +170,42 @@ administrador.getPacientes = async (req, res) => {
 };
 
 administrador.getCalendarTurnos = async (req, res) => {
-  const { fecha } = req.query;  // Obtener fecha desde la query parameter
-
+  const { fecha } = req.query; // Obtener fecha desde la query parameter
   try {
     let query = `
       SELECT 
         t.id_turno,
         t.fecha::date,
         t.hora,
-        c.nombre AS consultorio,
+        t.estado,
         p.nombre AS nombre_paciente,
         p.apellido AS apellido_paciente,
-        p.telefono as telefono
+        p.telefono AS telefono,
+        p.email AS email,
+        p.genero AS genero,
+        c.nombre AS nombre_consultorio,
+        tr.color AS color_tratamiento,
+        tr.nombre AS nombre_tratamiento,
+        tr.descripcion AS descripcion_tratamiento,
+        tr.duracion AS duracion_tratamiento,
+        tr.costo AS costo_tratamiento
+
       FROM turnos t
       INNER JOIN consultorios c ON t.id_consultorio = c.id_consultorio
       INNER JOIN pacientes p ON t.id_paciente = p.id_paciente
+      LEFT JOIN consultorio_tratamiento ct ON c.id_consultorio = ct.id_consultorio
+      LEFT JOIN tratamientos tr ON ct.id_tratamiento = tr.id_tratamiento
     `;
-
     if (fecha) {
       query += ` WHERE t.fecha::date = $1`;
     }
-
     // Obtener los turnos de la base de datos
     const turnos = await pool.query(query, fecha ? [fecha] : []);
-
     // Formatear las fechas antes de enviar la respuesta
     const turnosFormateados = turnos.rows.map(turno => ({
       ...turno,
-      fecha: fromatearFecha(turno.fecha)  // Aplicar la función de formato
+      fecha: fromatearFecha(turno.fecha) // Aplicar la función de formato
     }));
-
     // Enviar los turnos con las fechas formateadas
     res.status(200).json(turnosFormateados);
   } catch (error) {

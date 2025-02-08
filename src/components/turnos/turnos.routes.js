@@ -6,7 +6,7 @@ const router = Router();
 // Rutas relacionadas con turnos
 router.get('/', administrador.getTurnos);
 router.post('/', administrador.crearTurno);
-router.get('/calendario', administrador.getCalendarTurnos);
+// router.get('/calendario', administrador.getCalendarTurnos);
 
 
 router.route('/:id_turno')
