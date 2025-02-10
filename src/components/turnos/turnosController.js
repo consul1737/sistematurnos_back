@@ -15,13 +15,20 @@ const administrador = {};
 
 // Crear un turno
 administrador.crearTurno = async (req, res) => {
-  const { id_paciente, fecha, hora, estado, id_consultorio } = req.body;
+  const { id_paciente, fecha, hora, estado, id_consultorio, id_tratamiento } =
+    req.body;
+  console.log("Turno recibido:", req.body);
   try {
-    // Intentar insertar un turno, respetando la restricción UNIQUE
-    await pool.query(
-      "INSERT INTO turnos (id_paciente, fecha, hora, estado, id_consultorio) VALUES ($1, $2, $3, $4, $5)",
-      [id_paciente, fecha, hora, estado, id_consultorio]
+    const id_consultorio_tratamiento = await pool.query(
+      "SELECT id_consultorio_tratamiento FROM consultorio_tratamiento WHERE id_consultorio = $1 AND id_tratamiento = $2",
+      [id_consultorio, id_tratamiento]
     );
+    console.log(id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento);
+    // Intentar insertar un turno, respetando la restricción UNIQUE
+    // await pool.query(
+    //   "INSERT INTO turnos (id_paciente, fecha, hora, estado, id_consultorio) VALUES ($1, $2, $3, $4, $5)",
+    //   [id_paciente, fecha, hora, estado, id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento]
+    // );
 
     res.status(200).json({
       message: "El turno se creó correctamente",

@@ -124,17 +124,31 @@ export const createConsultorio = async (req, res) => {
       [nombre]
     );
 
-    const consultorioId = result.rows[0].id_consultorio;
+    const id_consultorio = result.rows[0].id_consultorio;
 
     // Asegúrate que 'tratamiento' no sea undefined o null antes de insertar
-    if (!tratamiento) {
-      throw new Error("Tratamiento no proporcionado");
-    }
+    // if (!tratamiento) {
+    //   throw new Error("Tratamiento no proporcionado");
+    // }
 
-    await pool.query(
-      `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)`,
-      [consultorioId, tratamiento]
-    );
+    // await pool.query(
+    //   `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)`,
+    //   [consultorioId, tratamiento]
+    // );
+    // Si hay tratamientos seleccionados, inserta las nuevas relaciones
+    if (tratamientos && tratamientos.length > 0) {
+      for (const id_tratamiento of tratamientos) {
+        const tratamientoId = parseInt(id_tratamiento, 10); // Convierte el ID a un número entero
+        if (isNaN(tratamientoId)) {
+          console.error(`ID de tratamiento inválido: ${id_tratamiento}`);
+          continue; // Salta este tratamiento si el ID no es válido
+        }
+        await pool.query(
+          `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)`,
+          [id_consultorio, tratamientoId] // Usa el ID convertido
+        );
+      }
+    }
 
     res.status(201).json({ message: "Consultorio creado con éxito" });
   } catch (error) {
