@@ -2,9 +2,7 @@ import pool from "../database/keys";
 
 export const getConsultorios = async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM consultorios"
-    );
+    const result = await pool.query("SELECT * FROM consultorios");
     res.status(200).json(result.rows);
   } catch (error) {
     res
@@ -15,16 +13,14 @@ export const getConsultorios = async (req, res) => {
 
 export const getConsultorioTratamiento = async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM consultorio_tratamiento"
-    );
+    const result = await pool.query("SELECT * FROM consultorio_tratamiento");
     res.status(200).json(result.rows);
   } catch (error) {
     res
       .status(500)
       .json({ message: "Error al obtener consultorios", error: error.message });
   }
-}
+};
 
 export const deleteConsultorioTratamiento = async (req, res) => {
   try {
@@ -91,7 +87,10 @@ export const getConsultoriosConTratamientos = async (req, res) => {
 
     res.status(200).json(result.rows);
   } catch (error) {
-    console.error("Error al obtener consultorios y tratamientos:", error.message);
+    console.error(
+      "Error al obtener consultorios y tratamientos:",
+      error.message
+    );
     res.status(500).json({
       message: "Error al obtener consultorios y tratamientos",
       error: error.message,
@@ -149,9 +148,9 @@ export const createConsultorio = async (req, res) => {
 
 export const updateConsultorio = async (req, res) => {
   const { id_consultorio } = req.params; // ID del consultorio a actualizar
-  const { nombre, tratamiento } = req.body;
+  const { nombre, tratamientos } = req.body;
 
-  console.log("Datos recibidos:", id_consultorio, nombre, tratamiento);
+  console.log("Datos recibidos:", id_consultorio, nombre, tratamientos);
 
   try {
     // Actualiza los datos básicos del consultorio
@@ -159,26 +158,30 @@ export const updateConsultorio = async (req, res) => {
       `UPDATE consultorios SET nombre = $1 WHERE id_consultorio = $2 RETURNING *`,
       [nombre, id_consultorio]
     );
-    console.log(result.rows);
+
     if (result.rowCount === 0) {
       return res.status(404).json({ message: "Consultorio no encontrado" });
     }
 
-    console.log("Tratamiento:", tratamiento);
+    console.log("Tratamiento:", tratamientos);
 
-    // Si se proporciona un tratamiento, actualiza la relación
-    if (tratamiento !== undefined) {
-      // Elimina las relaciones existentes para este consultorio
-      await pool.query(
-        `DELETE FROM consultorio_tratamiento WHERE id_consultorio = $1`,
-        [id_consultorio]
-      );
+    // Elimina las relaciones existentes para este consultorio
+    await pool.query(
+      `DELETE FROM consultorio_tratamiento WHERE id_consultorio = $1`,
+      [id_consultorio]
+    );
 
-      // Inserta la nueva relación si el tratamiento no es null
-      if (tratamiento) {
+    // Si hay tratamientos seleccionados, inserta las nuevas relaciones
+    if (tratamientos && tratamientos.length > 0) {
+      for (const id_tratamiento of tratamientos) {
+        const tratamientoId = parseInt(id_tratamiento, 10); // Convierte el ID a un número entero
+        if (isNaN(tratamientoId)) {
+          console.error(`ID de tratamiento inválido: ${id_tratamiento}`);
+          continue; // Salta este tratamiento si el ID no es válido
+        }
         await pool.query(
           `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)`,
-          [id_consultorio, tratamiento]
+          [id_consultorio, tratamientoId] // Usa el ID convertido
         );
       }
     }
@@ -205,19 +208,23 @@ export const deleteConsultorio = async (req, res) => {
 
     if (consultorioTratamientoResult.rows.length > 0) {
       return res.status(400).json({
-        message: "El consultorio no puede ser eliminado ya que tiene tratamientos asociados",
+        message:
+          "El consultorio no puede ser eliminado ya que tiene tratamientos asociados",
       });
     }
 
-    // Verificar si el consultorio tiene turnos asignados
+    // Verificar si el consultorio tiene turnos asignados directamente en la tabla turnos
     const turnosResult = await pool.query(
-      `SELECT * FROM turnos WHERE id_consultorio = $1`,
+      `SELECT * FROM turnos WHERE id_consultorio_tratamiento IN (
+        SELECT id_consultorio_tratamiento FROM consultorio_tratamiento WHERE id_consultorio = $1
+      )`,
       [id_consultorio]
     );
 
     if (turnosResult.rows.length > 0) {
       return res.status(400).json({
-        message: "El consultorio no puede ser eliminado ya que tiene turnos asignados",
+        message:
+          "El consultorio no puede ser eliminado ya que tiene turnos asignados",
       });
     }
 
