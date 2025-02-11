@@ -3,6 +3,7 @@
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 var _express = _interopRequireDefault(require("express"));
 var _morgan = _interopRequireDefault(require("morgan"));
+require("module-alias/register");
 var _cors = _interopRequireDefault(require("cors"));
 var _expressFileupload = _interopRequireDefault(require("express-fileupload"));
 var _connectHistoryApiFallback = _interopRequireDefault(require("connect-history-api-fallback"));
@@ -29,6 +30,10 @@ app.use((0, _expressFileupload["default"])({
   useTempFiles: true
 }));
 
+// Middleware para Vue
+app.use((0, _connectHistoryApiFallback["default"])());
+app.use(_express["default"]["static"](_path["default"].join(__dirname, "public")));
+
 // Importa las rutas usando los alias
 
 // Rutas
@@ -38,10 +43,6 @@ app.use("/turnos", _turnos["default"]);
 app.use("/pacientes", _pacientes["default"]);
 app.use("/consultorios", _consultorios["default"]);
 app.use("/tratamientos", _tratamientos["default"]);
-
-// Middleware para Vue
-app.use((0, _connectHistoryApiFallback["default"])());
-app.use(_express["default"]["static"](_path["default"].join(__dirname, "public")));
 
 // Configuración del puerto
 var PORT = process.env.PORT || 3003;

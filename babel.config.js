@@ -1,7 +1,5 @@
 module.exports = {
-  presets: [
-    "@babel/preset-env"
-  ],
+  presets: ["@babel/preset-env"],
   plugins: [
     "@babel/plugin-transform-runtime",
     [
@@ -16,10 +14,10 @@ module.exports = {
           "@turnos": "./src/components/turnos",
           "@whatsapp": "./src/components/whatsapp",
           "@tratamientos": "./src/components/tratamientos",
-          "@utils": "./src/utils"           // Ejemplo de otro alias
-        }
-      }
-    ]
+          "@utils": "./src/utils", // Ejemplo de otro alias
+        },
+      },
+    ],
   ],
   env: {
     production: {
@@ -29,15 +27,13 @@ module.exports = {
           {
             targets: "> 0.25%, not dead",
             useBuiltIns: "usage",
-            corejs: 3
-          }
-        ]
-      ]
+            corejs: 3,
+          },
+        ],
+      ],
     },
     development: {
-      presets: [
-        "@babel/preset-env"
-      ]
-    }
-  }
+      presets: ["@babel/preset-env"],
+    },
+  },
 };

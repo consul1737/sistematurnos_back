@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon app.js",
     "babel": "nodemon src/app.js --exec babel-node",
-    "build": "babel . -d dist --ignore node_modules",
+    "build": "babel src -d dist --ignore node_modules",
     "start": "node dist/app.js",
     "pm2:start": "pm2 start dist/app.js --name 'mi-backend'",
     "pm2:restart": "pm2 restart mi-backend",
@@ -28,6 +28,7 @@
     "express": "^4.21.0",
     "express-fileupload": "^1.5.1",
     "fileupload": "^1.0.0",
+    "module-alias": "^2.2.3",
     "moment": "^2.30.1",
     "morgan": "^1.10.0",
     "pg": "^8.13.1",
@@ -38,11 +39,19 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.26.4",
-    "@babel/core": "^7.26.0",
+    "@babel/core": "^7.26.8",
     "@babel/node": "^7.26.0",
-    "@babel/plugin-transform-runtime": "^7.25.9",
-    "@babel/preset-env": "^7.26.0",
+    "@babel/plugin-transform-runtime": "^7.26.8",
+    "@babel/preset-env": "^7.26.8",
     "babel-plugin-module-resolver": "^5.0.2",
     "nodemon": "^3.1.9"
+  },
+  "_moduleAliases": {
+    "@consultorios": "./dist/components/consultorios",
+    "@auth": "./dist/components/auth",
+    "@turnos": "./dist/components/turnos",
+    "@pacientes": "./dist/components/pacientes",
+    "@whatsapp": "./dist/components/whatsapp",
+    "@tratamientos": "./dist/components/tratamientos"
   }
 }
