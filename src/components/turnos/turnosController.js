@@ -17,18 +17,24 @@ const administrador = {};
 administrador.crearTurno = async (req, res) => {
   const { id_paciente, fecha, hora, estado, id_consultorio, id_tratamiento } =
     req.body;
-  console.log("Turno recibido:", req.body);
+  // console.log("Turno recibido:", req.body);
   try {
     const id_consultorio_tratamiento = await pool.query(
       "SELECT id_consultorio_tratamiento FROM consultorio_tratamiento WHERE id_consultorio = $1 AND id_tratamiento = $2",
       [id_consultorio, id_tratamiento]
     );
-    console.log(id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento);
+    // console.log(id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento);
     // Intentar insertar un turno, respetando la restricción UNIQUE
-    // await pool.query(
-    //   "INSERT INTO turnos (id_paciente, fecha, hora, estado, id_consultorio) VALUES ($1, $2, $3, $4, $5)",
-    //   [id_paciente, fecha, hora, estado, id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento]
-    // );
+    await pool.query(
+      "INSERT INTO turnos (id_paciente, fecha, hora, estado, id_consultorio_tratamiento) VALUES ($1, $2, $3, $4, $5)",
+      [
+        id_paciente,
+        fecha,
+        hora,
+        estado,
+        id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento,
+      ]
+    );
 
     res.status(200).json({
       message: "El turno se creó correctamente",
@@ -82,13 +88,25 @@ administrador.readTurno = async (req, res) => {
 // Actualizar un turno
 administrador.updateTurno = async (req, res) => {
   const id = req.params.id_turno;
-  const { fecha, hora, id_consultorio } = req.body;
+  const { id_paciente, fecha, hora, estado, id_consultorio, id_tratamiento } =
+    req.body;
 
   try {
+    const id_consultorio_tratamiento = await pool.query(
+      "SELECT id_consultorio_tratamiento FROM consultorio_tratamiento WHERE id_consultorio = $1 AND id_tratamiento = $2",
+      [id_consultorio, id_tratamiento]
+    );
     // Intentar actualizar un turno, respetando la restricción UNIQUE
     await pool.query(
-      "UPDATE turnos SET fecha = $1, hora = $2, id_consultorio = $3 WHERE id_turno = $4",
-      [fecha, hora, id_consultorio, id]
+      "UPDATE turnos SET id_paciente = $1, fecha = $2, hora = $3, estado = $4, id_consultorio_tratamiento = $5 WHERE id_turno = $6",
+      [
+        id_paciente,
+        fecha,
+        hora,
+        estado,
+        id_consultorio_tratamiento.rows[0].id_consultorio_tratamiento,
+        id,
+      ]
     );
 
     res.status(200).json({
@@ -194,17 +212,22 @@ administrador.getCalendarTurnos = async (req, res) => {
   t.fecha::date,
   t.hora,
   t.estado,
+  p.id_paciente,
   p.nombre AS nombre_paciente,
   p.apellido AS apellido_paciente,
   p.telefono AS telefono,
   p.email AS email,
   p.genero AS genero,
   c.nombre AS nombre_consultorio,
+  c.id_consultorio,
+  tr.id_tratamiento,
   tr.color AS color_tratamiento,
   tr.nombre AS nombre_tratamiento,
   tr.descripcion AS descripcion_tratamiento,
   tr.duracion AS duracion_tratamiento,
-  tr.costo AS costo_tratamiento
+  tr.costo AS costo_tratamiento,
+  ct.id_consultorio_tratamiento
+
 FROM turnos t
 INNER JOIN pacientes p ON t.id_paciente = p.id_paciente
 LEFT JOIN consultorio_tratamiento ct ON t.id_consultorio_tratamiento = ct.id_consultorio_tratamiento
