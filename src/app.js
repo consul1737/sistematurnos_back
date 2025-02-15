@@ -5,6 +5,7 @@ import cors from "cors";
 import fileUpload from "express-fileupload";
 import history from "connect-history-api-fallback";
 import path from "path";
+import swaggerConfig from "./swagger.js";
 import "dotenv/config"; // Usa esta forma si trabajas con import
 
 const app = express();
@@ -15,6 +16,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({ useTempFiles: true }));
+
+swaggerConfig(app);
 
 // Middleware para Vue
 app.use(history());
