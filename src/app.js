@@ -1,46 +1,26 @@
+import { createServer } from "http";
 import express from "express";
-import morgan from "morgan";
-import "module-alias/register";
-import cors from "cors";
-import fileUpload from "express-fileupload";
-import history from "connect-history-api-fallback";
-import path from "path";
-import swaggerConfig from "./swagger.js";
-import "dotenv/config"; // Usa esta forma si trabajas con import
+import configExpress from "./config/express.js";
+import configRoutes from "./config/routes.js";
+import { initializeSocket } from "./config/socket.js";
 
+// Crea la aplicación Express
 const app = express();
 
-// Middlewares
-app.use(morgan("tiny"));
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload({ useTempFiles: true }));
+// Configura Express (middlewares, etc.)
+configExpress(app);
 
-swaggerConfig(app);
+// Configura las rutas
+configRoutes(app);
 
-// Middleware para Vue
-app.use(history());
-app.use(express.static(path.join(__dirname, "public")));
+// Crea el servidor HTTP
+const server = createServer(app);
 
-// Importa las rutas usando los alias
-import consultorioRoute from "@consultorios/consultorios.routes";
-import authRoute from "@auth/auth.routes";
-import turnosRoute from "@turnos/turnos.routes";
-import pacientesRoute from "@pacientes/pacientes.routes";
-import whatsappRoute from "@whatsapp/whatsapp.routes";
-import tratamientosRoute from "@tratamientos/tratamientos.routes";
-// Rutas
-app.use("/", authRoute);
-app.use("/", whatsappRoute);
-app.use("/turnos", turnosRoute);
-app.use("/pacientes", pacientesRoute);
-app.use("/consultorios", consultorioRoute);
-app.use("/tratamientos", tratamientosRoute);
+// Configura Socket.io
+initializeSocket(server);
 
-// Configuración del puerto
+// Inicia el servidor
 const PORT = process.env.PORT || 3003;
-app.set("port", PORT);
-app.listen(app.get("port"), () => {
-  console.log(`Server on port ${app.get("port")}`);
+server.listen(PORT, () => {
+  console.log(`Servidor en ejecución en el puerto ${PORT}`);
 });

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import authentication from "@auth/authController";
-import { attachUserId } from "@auth/auth.middleware";
 
 const router = Router();
 

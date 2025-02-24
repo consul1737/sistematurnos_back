@@ -1,0 +1,11 @@
+{
+  "watch": ["src"],
+  "ignore": [
+    "src/baileys_store_multi.json",
+    "src/wa-logs.txt",
+    "baileys_auth_info/*",
+    "auth_info_baileys/*",
+    "node_modules"
+  ],
+  "ext": "js,json"
+}

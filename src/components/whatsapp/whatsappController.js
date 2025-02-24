@@ -1,34 +1,53 @@
 import { formatearFecha } from "../../utils/dateformatter";
 import pool from "../database/keys"; // Configura correctamente el pool para PostgreSQL.
-import { starWhatsapp, getClient } from "./whatsappClient";
+import { getClient } from "./whatsappClient";
 
-export const conectGenerateQR = async (req, res) => {
-  const { userId } = req; // Obtén el userId desde el middleware
+// export const initializeWhatsappController = async (userId, socket) => {
+//   try {
+//     await startWhatsapp(userId, socket);
+//     socket.emit("whatsapp-initialized", { userId });
+//   } catch (error) {
+//     console.error("Error al inicializar WhatsApp:", error);
+//     socket.emit("whatsapp-error", { userId, error: error.message });
+//   }
+// };
+
+import { getIO } from "../../config/socket";
+
+export const requestQRController = async (userId, socketId) => {
+  const io = getIO(); // Obtener la instancia de io
 
   try {
-    // Inicializa el cliente y obtén la información
-    const { qrCodeData } = await starWhatsapp(userId);
+    const client = getClient(userId);
 
-    console.log("QR Code Data userId" + userId + ":", qrCodeData);
-
-    if (!qrCodeData) {
-      return res
-        .status(400)
-        .json({ message: "No se pudo generar el cliente de WhatsApp." });
+    if (!client) {
+      if (io && socketId) {
+        io.to(socketId).emit("whatsapp-error", {
+          userId,
+          error: "Cliente no inicializado",
+        });
+      } else {
+        console.error("io o socketId no están definidos");
+      }
+      return;
     }
 
-    res.status(200).json({
-      qrCode: qrCodeData, // Aquí se incluye la información del cliente
-    });
+    console.log(`Solicitando QR para userId: ${userId}`);
+
+    if (io && socketId) {
+      io.to(socketId).emit("whatsapp-qr-refresh", { userId });
+    } else {
+      console.error("io o socketId no están definidos");
+    }
   } catch (error) {
-    console.error("Error en conectGenerateQR:", error);
-    res.status(500).json({
-      message: "Error al generar el cliente de WhatsApp",
-      error: error.message,
-    });
+    console.error("Error al solicitar el QR:", error);
+    if (io && socketId) {
+      io.to(socketId).emit("whatsapp-error", { userId, error: error.message });
+    } else {
+      console.error("io o socketId no están definidos");
+    }
   }
 };
-
 //export const conectGenerateQR = async (req, res) => {
 //   const { userId } = req; // Obtén el userId desde el middleware
 
