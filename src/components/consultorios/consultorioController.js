@@ -161,13 +161,26 @@ export const createConsultorio = async (req, res) => {
 };
 
 export const updateConsultorio = async (req, res) => {
-  const { id_consultorio } = req.params; // ID del consultorio a actualizar
+  const { id_consultorio } = req.params;
   const { nombre, tratamientos } = req.body;
 
   console.log("Datos recibidos:", id_consultorio, nombre, tratamientos);
 
   try {
-    // Actualiza los datos básicos del consultorio
+    // Verificar si hay turnos asociados a las relaciones de consultorio_tratamiento
+    const turnosResult = await pool.query(
+      `SELECT id_consultorio_tratamiento, id_tratamiento FROM consultorio_tratamiento 
+       WHERE id_consultorio = $1 AND id_consultorio_tratamiento IN (
+         SELECT id_consultorio_tratamiento FROM turnos
+       )`,
+      [id_consultorio]
+    );
+
+    const tratamientosConTurnos = turnosResult.rows.map(
+      (row) => row.id_tratamiento
+    );
+
+    // Actualizar el nombre del consultorio
     const result = await pool.query(
       `UPDATE consultorios SET nombre = $1 WHERE id_consultorio = $2 RETURNING *`,
       [nombre, id_consultorio]
@@ -177,25 +190,44 @@ export const updateConsultorio = async (req, res) => {
       return res.status(404).json({ message: "Consultorio no encontrado" });
     }
 
-    console.log("Tratamiento:", tratamientos);
-
-    // Elimina las relaciones existentes para este consultorio
+    // Eliminar relaciones de tratamientos que no tienen turnos asociados
     await pool.query(
-      `DELETE FROM consultorio_tratamiento WHERE id_consultorio = $1`,
+      `DELETE FROM consultorio_tratamiento 
+       WHERE id_consultorio = $1 AND id_tratamiento NOT IN (
+         SELECT id_tratamiento FROM turnos 
+         INNER JOIN consultorio_tratamiento USING (id_consultorio_tratamiento)
+       )`,
       [id_consultorio]
     );
 
-    // Si hay tratamientos seleccionados, inserta las nuevas relaciones
+    // Insertar solo tratamientos nuevos (que no estén ya registrados)
     if (tratamientos && tratamientos.length > 0) {
       for (const id_tratamiento of tratamientos) {
-        const tratamientoId = parseInt(id_tratamiento, 10); // Convierte el ID a un número entero
+        const tratamientoId = parseInt(id_tratamiento, 10);
         if (isNaN(tratamientoId)) {
           console.error(`ID de tratamiento inválido: ${id_tratamiento}`);
-          continue; // Salta este tratamiento si el ID no es válido
+          continue;
         }
+
+        // Verificamos si la relación ya existe
+        const existResult = await pool.query(
+          `SELECT 1 FROM consultorio_tratamiento 
+           WHERE id_consultorio = $1 AND id_tratamiento = $2`,
+          [id_consultorio, tratamientoId]
+        );
+
+        if (existResult.rowCount > 0) {
+          console.log(
+            `La relación consultorio ${id_consultorio} - tratamiento ${tratamientoId} ya existe`
+          );
+          continue;
+        }
+
+        // Insertamos la relación, si no existe
         await pool.query(
-          `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)`,
-          [id_consultorio, tratamientoId] // Usa el ID convertido
+          `INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) 
+           VALUES ($1, $2)`,
+          [id_consultorio, tratamientoId]
         );
       }
     }
