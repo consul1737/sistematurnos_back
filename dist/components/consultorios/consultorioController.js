@@ -276,89 +276,103 @@ var createConsultorio = exports.createConsultorio = /*#__PURE__*/function () {
 }();
 var updateConsultorio = exports.updateConsultorio = /*#__PURE__*/function () {
   var _ref7 = (0, _asyncToGenerator2["default"])(/*#__PURE__*/_regenerator["default"].mark(function _callee7(req, res) {
-    var id_consultorio, _req$body2, nombre, tratamientos, result, _iterator2, _step2, id_tratamiento, tratamientoId;
+    var id_consultorio, _req$body2, nombre, tratamientos, turnosResult, tratamientosConTurnos, result, _iterator2, _step2, id_tratamiento, tratamientoId, existResult;
     return _regenerator["default"].wrap(function _callee7$(_context7) {
       while (1) switch (_context7.prev = _context7.next) {
         case 0:
-          id_consultorio = req.params.id_consultorio; // ID del consultorio a actualizar
+          id_consultorio = req.params.id_consultorio;
           _req$body2 = req.body, nombre = _req$body2.nombre, tratamientos = _req$body2.tratamientos;
           console.log("Datos recibidos:", id_consultorio, nombre, tratamientos);
           _context7.prev = 3;
           _context7.next = 6;
-          return _keys["default"].query("UPDATE consultorios SET nombre = $1 WHERE id_consultorio = $2 RETURNING *", [nombre, id_consultorio]);
+          return _keys["default"].query("SELECT id_consultorio_tratamiento, id_tratamiento FROM consultorio_tratamiento \n       WHERE id_consultorio = $1 AND id_consultorio_tratamiento IN (\n         SELECT id_consultorio_tratamiento FROM turnos\n       )", [id_consultorio]);
         case 6:
+          turnosResult = _context7.sent;
+          tratamientosConTurnos = turnosResult.rows.map(function (row) {
+            return row.id_tratamiento;
+          }); // Actualizar el nombre del consultorio
+          _context7.next = 10;
+          return _keys["default"].query("UPDATE consultorios SET nombre = $1 WHERE id_consultorio = $2 RETURNING *", [nombre, id_consultorio]);
+        case 10:
           result = _context7.sent;
           if (!(result.rowCount === 0)) {
-            _context7.next = 9;
+            _context7.next = 13;
             break;
           }
           return _context7.abrupt("return", res.status(404).json({
             message: "Consultorio no encontrado"
           }));
-        case 9:
-          console.log("Tratamiento:", tratamientos);
-
-          // Elimina las relaciones existentes para este consultorio
-          _context7.next = 12;
-          return _keys["default"].query("DELETE FROM consultorio_tratamiento WHERE id_consultorio = $1", [id_consultorio]);
-        case 12:
+        case 13:
+          _context7.next = 15;
+          return _keys["default"].query("DELETE FROM consultorio_tratamiento \n       WHERE id_consultorio = $1 AND id_tratamiento NOT IN (\n         SELECT id_tratamiento FROM turnos \n         INNER JOIN consultorio_tratamiento USING (id_consultorio_tratamiento)\n       )", [id_consultorio]);
+        case 15:
           if (!(tratamientos && tratamientos.length > 0)) {
-            _context7.next = 34;
+            _context7.next = 43;
             break;
           }
           _iterator2 = _createForOfIteratorHelper(tratamientos);
-          _context7.prev = 14;
+          _context7.prev = 17;
           _iterator2.s();
-        case 16:
+        case 19:
           if ((_step2 = _iterator2.n()).done) {
-            _context7.next = 26;
+            _context7.next = 35;
             break;
           }
           id_tratamiento = _step2.value;
-          tratamientoId = parseInt(id_tratamiento, 10); // Convierte el ID a un número entero
+          tratamientoId = parseInt(id_tratamiento, 10);
           if (!isNaN(tratamientoId)) {
-            _context7.next = 22;
+            _context7.next = 25;
             break;
           }
           console.error("ID de tratamiento inv\xE1lido: ".concat(id_tratamiento));
-          return _context7.abrupt("continue", 24);
-        case 22:
-          _context7.next = 24;
-          return _keys["default"].query("INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) VALUES ($1, $2)", [id_consultorio, tratamientoId] // Usa el ID convertido
-          );
-        case 24:
-          _context7.next = 16;
-          break;
-        case 26:
-          _context7.next = 31;
-          break;
-        case 28:
-          _context7.prev = 28;
-          _context7.t0 = _context7["catch"](14);
-          _iterator2.e(_context7.t0);
+          return _context7.abrupt("continue", 33);
+        case 25:
+          _context7.next = 27;
+          return _keys["default"].query("SELECT 1 FROM consultorio_tratamiento \n           WHERE id_consultorio = $1 AND id_tratamiento = $2", [id_consultorio, tratamientoId]);
+        case 27:
+          existResult = _context7.sent;
+          if (!(existResult.rowCount > 0)) {
+            _context7.next = 31;
+            break;
+          }
+          console.log("La relaci\xF3n consultorio ".concat(id_consultorio, " - tratamiento ").concat(tratamientoId, " ya existe"));
+          return _context7.abrupt("continue", 33);
         case 31:
-          _context7.prev = 31;
-          _iterator2.f();
-          return _context7.finish(31);
-        case 34:
-          res.status(200).json({
-            message: "Consultorio actualizado con éxito"
-          });
-          _context7.next = 41;
+          _context7.next = 33;
+          return _keys["default"].query("INSERT INTO consultorio_tratamiento (id_consultorio, id_tratamiento) \n           VALUES ($1, $2)", [id_consultorio, tratamientoId]);
+        case 33:
+          _context7.next = 19;
+          break;
+        case 35:
+          _context7.next = 40;
           break;
         case 37:
           _context7.prev = 37;
+          _context7.t0 = _context7["catch"](17);
+          _iterator2.e(_context7.t0);
+        case 40:
+          _context7.prev = 40;
+          _iterator2.f();
+          return _context7.finish(40);
+        case 43:
+          res.status(200).json({
+            message: "Consultorio actualizado con éxito"
+          });
+          _context7.next = 50;
+          break;
+        case 46:
+          _context7.prev = 46;
           _context7.t1 = _context7["catch"](3);
           console.error("Error al actualizar el consultorio:", _context7.t1.message);
           res.status(500).json({
             message: "Error al actualizar el consultorio",
             error: _context7.t1.message
           });
-        case 41:
+        case 50:
         case "end":
           return _context7.stop();
       }
-    }, _callee7, null, [[3, 37], [14, 28, 31, 34]]);
+    }, _callee7, null, [[3, 46], [17, 37, 40, 43]]);
   }));
   return function updateConsultorio(_x13, _x14) {
     return _ref7.apply(this, arguments);
