@@ -1,15 +1,14 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+  value: true,
 });
 exports["default"] = void 0;
 var _express = require("express");
-var _cajaControllers = require("../caja/cajaControllers");
-// src/routes/caja.routes.js
-
-// asegurate que esté bien resuelto el alias
-
+var _cajaController = require("./cajaController");
 var router = (0, _express.Router)();
-router.get("/", _cajaControllers.getVistaCaja); // Esto responde a /caja/ desde el archivo principal
-var _default = exports["default"] = router;
+router.post("/abrir", _cajaController.abrirCaja);
+router.post("/movimiento", _cajaController.registrarMovimiento);
+router.post("/nuevaCaja", _cajaController.crearCaja);
+router.get("/historial/:caja_id", _cajaController.historial);
+var _default = (exports["default"] = router);
