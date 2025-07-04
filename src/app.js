@@ -7,8 +7,7 @@ import fileUpload from "express-fileupload";
 import history from "connect-history-api-fallback";
 import path from "path";
 import "dotenv/config";
-
-
+dotenv.config({ path: path.resolve("../.env") });
 
 const app = express();
 
@@ -39,7 +38,6 @@ import pacientesRoute from "@pacientes/pacientes.routes";
 import consultorioRoute from "@consultorios/consultorios.routes";
 import tratamientosRoute from "@tratamientos/tratamientos.routes";
 import cajaRoute from "./components/caja/caja.routes";
-
 
 // Puerto
 const PORT = process.env.PORT || 3003;

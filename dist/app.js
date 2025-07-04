@@ -18,6 +18,9 @@ var _tratamientos = _interopRequireDefault(require("./components/tratamientos/tr
 var _caja = _interopRequireDefault(require("./components/caja/caja.routes"));
 // src/index.js
 
+dotenv.config({
+  path: _path["default"].resolve("../.env")
+});
 var app = (0, _express["default"])();
 
 // Middlewares
