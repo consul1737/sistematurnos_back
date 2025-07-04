@@ -20,7 +20,7 @@ import ventasRoute from "./components/ventas/ventas.routes";
 import articulosRoute from "./components/articulos/articulos.routes";
 import perfilesRoute from "@perfiles/perfiles.routes";
 import ubicacionRoute from "./components/ubicacion/ubicacion.routes";
-import contactosRoute from "./components/contactos/contactos.routes";
+// import contactosRoute from "./components/contactos/contactos.routes";
 
 const app = express();
 
@@ -43,7 +43,7 @@ app.use("/ventas", ventasRoute);
 app.use("/articulos", articulosRoute);
 app.use("/perfiles", perfilesRoute);
 app.use("/ubicacion", ubicacionRoute);
-app.use("/contactos", contactosRoute);
+// app.use("/contactos", contactosRoute);
 
 // Middleware para frontend
 app.use(history());
