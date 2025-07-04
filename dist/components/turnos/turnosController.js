@@ -241,7 +241,7 @@ administrador.getTurnosById = /*#__PURE__*/function () {
       }
     }, _callee5, null, [[1, 8]]);
   }));
-  return function (_x9, _x10) {
+  return function (_x9, _x0) {
     return _ref5.apply(this, arguments);
   };
 }();
@@ -275,7 +275,7 @@ administrador.getTurnos = /*#__PURE__*/function () {
       }
     }, _callee6, null, [[0, 7]]);
   }));
-  return function (_x11, _x12) {
+  return function (_x1, _x10) {
     return _ref6.apply(this, arguments);
   };
 }();
@@ -306,7 +306,7 @@ administrador.getPacientes = /*#__PURE__*/function () {
       }
     }, _callee7, null, [[0, 7]]);
   }));
-  return function (_x13, _x14) {
+  return function (_x11, _x12) {
     return _ref7.apply(this, arguments);
   };
 }();
@@ -349,7 +349,7 @@ administrador.getCalendarTurnos = /*#__PURE__*/function () {
       }
     }, _callee8, null, [[1, 11]]);
   }));
-  return function (_x15, _x16) {
+  return function (_x13, _x14) {
     return _ref8.apply(this, arguments);
   };
 }();

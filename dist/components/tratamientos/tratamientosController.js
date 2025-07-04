@@ -181,7 +181,7 @@ var updateTratamiento = exports.updateTratamiento = /*#__PURE__*/function () {
       }
     }, _callee5, null, [[3, 10]]);
   }));
-  return function updateTratamiento(_x9, _x10) {
+  return function updateTratamiento(_x9, _x0) {
     return _ref5.apply(this, arguments);
   };
 }();
@@ -272,7 +272,7 @@ var deleteTratamiento = exports.deleteTratamiento = /*#__PURE__*/function () {
       }
     }, _callee6, null, [[1, 37], [7, 23, 26, 29]]);
   }));
-  return function deleteTratamiento(_x11, _x12) {
+  return function deleteTratamiento(_x1, _x10) {
     return _ref6.apply(this, arguments);
   };
 }();

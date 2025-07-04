@@ -186,7 +186,7 @@ var getConsultorioById = exports.getConsultorioById = /*#__PURE__*/function () {
       }
     }, _callee5, null, [[1, 8]]);
   }));
-  return function getConsultorioById(_x9, _x10) {
+  return function getConsultorioById(_x9, _x0) {
     return _ref5.apply(this, arguments);
   };
 }();
@@ -270,7 +270,7 @@ var createConsultorio = exports.createConsultorio = /*#__PURE__*/function () {
       }
     }, _callee6, null, [[2, 32], [9, 23, 26, 29]]);
   }));
-  return function createConsultorio(_x11, _x12) {
+  return function createConsultorio(_x1, _x10) {
     return _ref6.apply(this, arguments);
   };
 }();
@@ -374,7 +374,7 @@ var updateConsultorio = exports.updateConsultorio = /*#__PURE__*/function () {
       }
     }, _callee7, null, [[3, 46], [17, 37, 40, 43]]);
   }));
-  return function updateConsultorio(_x13, _x14) {
+  return function updateConsultorio(_x11, _x12) {
     return _ref7.apply(this, arguments);
   };
 }();
@@ -441,7 +441,7 @@ var deleteConsultorio = exports.deleteConsultorio = /*#__PURE__*/function () {
       }
     }, _callee8, null, [[1, 20]]);
   }));
-  return function deleteConsultorio(_x15, _x16) {
+  return function deleteConsultorio(_x13, _x14) {
     return _ref8.apply(this, arguments);
   };
 }();
